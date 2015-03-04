@@ -1,0 +1,77 @@
+<div style="padding:20px 40px;">
+        <h1 style="font-size:20px;color:#999;">身份证查询</h1>
+        <input type="text" placeholder="输入身份证号" id="code">
+        <input type="button" value="查询" id="btn">
+        <p id="home"><strong>籍&nbsp;&nbsp;&nbsp;&nbsp;贯：</strong><span></span></p>
+        <p id="birthday"><strong>出生日期：</strong><span></span></p>
+        <p id="sex"><strong>性&nbsp;&nbsp;&nbsp;&nbsp;别：</strong><span></span></p>
+    </div>
+    <script type="text/javascript">
+        /* 
+        公民身份号码由六位数字地址码，八位数字出生日期码，三位数字顺序码和一位数字校验码组成。
+        地址码 前两位表示省，中间两位表示市，后两位表示县
+        顺序码 表示同一地址码所标识的区域范围内，对同年、月、日出生的人员编定的顺序号。顺序码的奇数分给男性，偶数分给女性。
+        校验码 是根据前面十七位数字码，按照ISO 7064:1983.MOD 11-2校验码计算出来的检验码。
+        校验码计算方法：
+            1)将前面的身份证号码17位数分别乘以不同的系数,从第一位到第十七位的系数分别为：7 9 10 5 8 4 2 1 6 3 7 9 10 5 8 4 2 ;
+            2)将这17位数字和系数相乘的结果相加,用加出来和除以11，得到余数;
+            4)余数只可能有0 1 2 3 4 5 6 7 8 9 10这11个数字,其分别对应的最后一位身份证的号码为1 0 X 9 8 7 6 5 4 3 2。
+
+        身份证号合法性验证  支持15位和18位身份证号 支持地址编码、出生日期、校验位验证 
+        */
+
+        //去掉字符串头尾空格   
+        var home='',birthday='',sex='';
+        function trim(str) {   
+            return str.replace(/^\s*|\s*$/g, "");   
+        }
+        //验证身份证
+        function IdentityCodeValid(code) {
+            code=trim(code);
+            var city={11:"北京",12:"天津",13:"河北",14:"山西",15:"内蒙古",21:"辽宁",22:"吉林",23:"黑龙江 ",31:"上海",32:"江苏",33:"浙江",34:"安徽",35:"福建",36:"江西",37:"山东",41:"河南",42:"湖北 ",43:"湖南",44:"广东",45:"广西",46:"海南",50:"重庆",51:"四川",52:"贵州",53:"云南",54:"西藏 ",61:"陕西",62:"甘肃",63:"青海",64:"宁夏",65:"新疆",71:"台湾",81:"香港",82:"澳门"};    
+
+            if(!code || !/^\d{6}(18|19|20)?\d{2}(0[1-9]|1[012])(0[1-9]|[12]\d|3[01])\d{3}(\d|X)$/i.test(code)){
+                alert("身份证号格式错误");
+                home='',birthday='',sex='';
+                return false;
+            }
+            if(!city[code.substring(0,2)]){
+                alert("地址编码错误");
+                home='',birthday='',sex='';
+                return false;
+            }
+            if(code.length == 18){    //18位身份证需要验证最后一位校验位
+                var codeArr = code.split('');        
+                var factor = [ 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 ];    //加权因子                
+                var parity = [ 1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2 ];                        //校验位
+                var sum = 0;
+                for (var i = 0; i < 17; i++){
+                    sum += codeArr[i] * factor[i];
+                }
+                if(parity[sum % 11] != codeArr[17]){
+                    alert("校验位错误");
+                    home='',birthday='',sex='';
+                    return false;
+                }                
+            }
+            //省份
+            home = city[code.substring(0,2)];    
+            //生日
+            birthday = code.substring(6,10)+'年'+code.substring(10,12)+'月'+code.substring(12,14)+'日';
+            //性别
+            if(code.length==15){
+                sex = code.substring(14,15)%2==0 ? '女':'男';
+            }else if(code.length==18){
+                sex = code.substring(14,17)%2==0 ? '女':'男';
+            }
+        }
+           //输出结果
+        document.querySelector('#btn').onclick=function(){
+            var code=document.querySelector('#code').value;
+            IdentityCodeValid(code);
+            document.querySelector('#home span').innerHTML=home;
+            document.querySelector('#birthday span').innerHTML=birthday;
+            document.querySelector('#sex span').innerHTML=sex;
+        }
+    </script>
+
